@@ -613,3 +613,77 @@ if(P.App && P.App.addListener){
     if(P.App.minimizeApp) P.App.minimizeApp();
   });
 }
+
+// ======================================================================
+// ===================== Enviar a PC (WiFi local) =======================
+// ======================================================================
+async function getPcIp(){
+  if(P.Preferences && P.Preferences.get){ var r=await P.Preferences.get({key:'afgf_pc'}); return r.value||''; }
+  return localStorage.getItem('afgf_pc')||'';
+}
+async function setPcIp(v){
+  if(P.Preferences && P.Preferences.set){ await P.Preferences.set({key:'afgf_pc',value:v}); }
+  else localStorage.setItem('afgf_pc',v);
+}
+function normalizeUrl(ip){
+  ip=(ip||'').trim(); if(!ip) return '';
+  if(!/^https?:\/\//i.test(ip)) ip='http://'+ip;
+  var rest=ip.replace(/^https?:\/\//i,'');
+  if(!/:\d+/.test(rest)) ip=ip.replace(/\/+$/,'')+':8765';
+  return ip.replace(/\/+$/,'');
+}
+async function configPC(){
+  var v=await getPcIp(); var e=document.getElementById('pcIp'); if(e) e.value=v||'';
+  var m=document.getElementById('pcMsg'); if(m) m.textContent='';
+  openModal('pcModal');
+}
+async function enviarAPC(){
+  if(!state.frame){ alert('Primero carga un marco y una foto.'); return; }
+  var ip=await getPcIp();
+  if(!ip){ configPC(); return; }
+  doSendPC(ip);
+}
+async function doSendPC(ip){
+  var url=normalizeUrl(ip);
+  var c=renderFinal();
+  var dataUrl=c.toDataURL('image/jpeg',0.95);
+  setStatus('Enviando a la PC…');
+  try{
+    if(window.__NATIVE__ && P.CapacitorHttp){
+      var res=await P.CapacitorHttp.post({ url:url+'/upload', headers:{'Content-Type':'application/json'},
+        data: JSON.stringify({ image:dataUrl, event:eventName(), name:'foto.jpg' }) });
+      if(res.status>=200 && res.status<300){ addToGallery(dataUrl); setStatus('Enviada a la PC ✓'); }
+      else setStatus('La PC respondió error ('+res.status+').');
+    } else {
+      await fetch(url+'/upload',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({image:dataUrl,event:eventName(),name:'foto.jpg'})});
+      addToGallery(dataUrl); setStatus('Enviada (navegador).');
+    }
+  }catch(e){ setStatus('No se pudo conectar con la PC. Revisa la IP y que estén en la misma WiFi.'); }
+}
+async function probarPC(){
+  var url=normalizeUrl(document.getElementById('pcIp').value);
+  var m=document.getElementById('pcMsg');
+  if(!url){ m.textContent='Escribe la dirección de la PC.'; return; }
+  m.textContent='Probando…';
+  try{
+    if(window.__NATIVE__ && P.CapacitorHttp){
+      var r=await P.CapacitorHttp.get({url:url+'/ping'}); var d=r.data;
+      if(typeof d==='string'){ try{ d=JSON.parse(d); }catch(e){} }
+      m.textContent=(d&&d.ok)?('Conectado ✓ ('+(d.name||'Receptor')+')'):'Respondió, pero no es el receptor.';
+    } else {
+      var rr=await fetch(url+'/ping'); var dd=await rr.json();
+      m.textContent=dd.ok?'Conectado ✓':'Respondió, pero no es el receptor.';
+    }
+  }catch(e){ m.textContent='No responde. Revisa la IP y que estén en la misma WiFi.'; }
+}
+async function guardarEnviarPC(){
+  var ip=(document.getElementById('pcIp').value||'').trim();
+  if(!ip){ document.getElementById('pcMsg').textContent='Escribe la dirección de la PC.'; return; }
+  await setPcIp(ip); closeModal('pcModal'); doSendPC(ip);
+}
+(function wirePC(){
+  var t=document.getElementById('btnPcTest'), s=document.getElementById('btnPcSend');
+  if(t) t.addEventListener('click', probarPC);
+  if(s) s.addEventListener('click', guardarEnviarPC);
+})();

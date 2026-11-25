@@ -113,6 +113,7 @@
     <div class="drop">
       <button onclick="openGallery()">Galería de esta sesión…</button>
       <button onclick="batchInput.click()">Lote: varias fotos…</button>
+      <button onclick="configPC()">Configurar PC…</button>
     </div>
   </div>
   <div class="menu" id="mTheme"><button>Temas</button><div class="drop" id="themeDrop"></div></div>
@@ -199,6 +200,7 @@
 
     <h3>Salida</h3>
     <button class="btn" id="btnOut" onclick="downloadPhoto()">Descargar foto</button>
+    <button class="btn" id="btnSendPC" onclick="enviarAPC()">Enviar a PC</button>
     <button class="btn" data-print onclick="printPhoto()">Imprimir</button>
     <div class="hint" id="status"></div>
   </div>
@@ -231,6 +233,19 @@
   <div style="display:flex;gap:10px;margin-top:14px">
     <button class="btn sec" style="flex:1" onclick="closeModal('licenseModal')">Cerrar</button>
     <button class="btn" style="flex:1;background:#c0392b" onclick="desactivar()">Desactivar este equipo</button>
+  </div>
+</div></div>
+
+<div class="modal" id="pcModal"><div class="box">
+  <h2>Enviar a PC</h2>
+  <p style="color:var(--mut);margin:0 0 8px">Escribe la dirección que muestra el <b>ArtefGo Receptor</b> en la PC. El celular y la PC deben estar en la misma WiFi.</p>
+  <label>Dirección de la PC</label>
+  <input type="text" id="pcIp" inputmode="decimal" placeholder="192.168.1.50:8765">
+  <div class="hint" id="pcMsg"></div>
+  <div style="display:flex;gap:10px;margin-top:14px">
+    <button class="btn sec" style="flex:1" onclick="closeModal('pcModal')">Cerrar</button>
+    <button class="btn sec" style="flex:1" id="btnPcTest">Probar</button>
+    <button class="btn" style="flex:1" id="btnPcSend">Guardar y enviar</button>
   </div>
 </div></div>
 
