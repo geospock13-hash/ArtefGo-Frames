@@ -488,11 +488,14 @@ saveProject = function(){
 };
 
 // ---- Arrastre táctil (reusa la lógica de mouse vía eventos sintéticos) ----
+// Solo arrastra (y bloquea el scroll) cuando el toque empieza sobre un elemento
+// movible del lienzo. Si no, deja que el panel se desplace normalmente.
 view.addEventListener('touchstart', function(e){ if(!e.touches.length) return; var t=e.touches[0];
-  view.dispatchEvent(new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY,bubbles:true})); e.preventDefault(); }, {passive:false});
-window.addEventListener('touchmove', function(e){ if(!e.touches.length) return; var t=e.touches[0];
+  view.dispatchEvent(new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY,bubbles:true}));
+  if(drag) e.preventDefault(); }, {passive:false});
+window.addEventListener('touchmove', function(e){ if(!drag || !e.touches.length) return; var t=e.touches[0];
   window.dispatchEvent(new MouseEvent('mousemove',{clientX:t.clientX,clientY:t.clientY,bubbles:true})); e.preventDefault(); }, {passive:false});
-window.addEventListener('touchend', function(){ window.dispatchEvent(new MouseEvent('mouseup',{bubbles:true})); }, {passive:false});
+window.addEventListener('touchend', function(){ if(drag) window.dispatchEvent(new MouseEvent('mouseup',{bubbles:true})); }, {passive:false});
 
 // ---- Ajustes de interfaz para Android ----
 if(window.__NATIVE__){
