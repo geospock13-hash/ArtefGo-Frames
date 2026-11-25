@@ -1,0 +1,24 @@
+{
+  "name": "artefgo-frames",
+  "version": "1.0.0",
+  "description": "ArtefGo Frames - app Android (cámara + marco) con licencia Apps Script",
+  "author": "ArtefGo Studio Labs",
+  "license": "UNLICENSED",
+  "scripts": {
+    "obfuscate": "node obfuscate.js",
+    "sync": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/camera": "^6.1.2",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/device": "^6.0.2",
+    "@capacitor/filesystem": "^6.0.3",
+    "@capacitor/preferences": "^6.0.3",
+    "@capacitor/share": "^6.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0",
+    "javascript-obfuscator": "^4.1.1"
+  }
+}

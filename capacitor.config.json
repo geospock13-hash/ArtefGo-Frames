@@ -1,0 +1,11 @@
+{
+  "appId": "com.artefgo.frames",
+  "appName": "ArtefGo Frames",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  }
+}

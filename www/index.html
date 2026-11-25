@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>ArtefGo Frames</title>
+<style>
+  :root{ --acc:#1BA1E2; --accD:#1589bf; --bg:#141414; --panel:#1e1e1e; --card:#262626;
+         --txt:#f2f2f2; --mut:#9a9a9a; --bd:#343434; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; height:100%; background:var(--bg); color:var(--txt);
+             font-family:'Segoe UI',system-ui,Roboto,sans-serif; }
+  .screen{ display:none; height:100%; }
+  .screen.on{ display:flex; }
+
+  /* ---------- Activación ---------- */
+  #activation{ flex-direction:column; justify-content:center; padding:26px; gap:4px; }
+  #activation .logo{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  #activation .logo .dot{ width:22px;height:22px;border-radius:5px;background:var(--acc); }
+  #activation h1{ font-size:20px; margin:0; }
+  label{ font-size:12px; color:var(--mut); display:block; margin:12px 0 4px; }
+  input{ width:100%; background:#171717; color:var(--txt); border:1px solid var(--bd);
+         border-radius:8px; padding:12px; font-size:16px; }
+  input:focus{ outline:none; border-color:var(--acc); }
+  .hw{ color:#6f6f6f; font-family:monospace; font-size:11px; word-break:break-all; margin-top:12px; }
+  #msg{ color:#e06666; margin-top:12px; min-height:18px; font-size:14px; }
+  .row{ display:flex; gap:10px; margin-top:18px; }
+  .btn{ flex:1; border:none; border-radius:8px; padding:14px; font-weight:600; font-size:15px;
+        color:#fff; background:var(--acc); }
+  .btn:active{ background:var(--accD); }
+  .btn.sec{ background:#333; }
+
+  /* ---------- Editor ---------- */
+  #editor{ flex-direction:column; }
+  .topbar{ display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--panel);
+           border-bottom:1px solid var(--bd); }
+  .topbar .dot{ width:16px;height:16px;border-radius:4px;background:var(--acc); }
+  .topbar .brandico{ width:18px;height:18px;border-radius:4px; }
+  .topbar b{ font-size:15px; }
+  .topbar .sp{ flex:1; }
+  .iconbtn{ background:#2a2a2a; border:1px solid var(--bd); color:var(--txt); border-radius:8px;
+            padding:8px 10px; font-size:13px; }
+  .stage{ flex:1; display:flex; align-items:center; justify-content:center; padding:12px;
+          background:#0e0e0e; overflow:auto; }
+  #preview{ max-width:100%; max-height:100%; background:#fff; border-radius:4px;
+            box-shadow:0 2px 12px rgba(0,0,0,.5); }
+  .toolbar{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:12px;
+            background:var(--panel); border-top:1px solid var(--bd); }
+  .toolbar .btn{ flex:none; }
+  .sizes{ display:flex; gap:8px; grid-column:1 / -1; }
+  .sizes button{ flex:1; background:#2a2a2a; border:1px solid var(--bd); color:var(--txt);
+                 border-radius:8px; padding:10px; font-size:14px; }
+  .sizes button.act{ background:var(--acc); border-color:var(--acc); color:#fff; }
+
+  /* ---------- Modal ---------- */
+  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:none;
+          align-items:center; justify-content:center; padding:20px; z-index:50; }
+  .modal.on{ display:flex; }
+  .modal .box{ background:var(--card); border:1px solid var(--bd); border-radius:12px;
+               padding:20px; width:100%; max-width:420px; }
+  .modal h2{ margin:0 0 12px; font-size:18px; }
+  .modal .mono{ font-family:monospace; font-size:12px; word-break:break-all; color:var(--mut); }
+</style>
+</head>
+<body>
+
+<!-- ======= PANTALLA DE ACTIVACIÓN ======= -->
+<div class="screen" id="activation">
+  <div class="logo"><img class="brandico" id="actIcon" width="22" height="22" alt=""><span class="dot"></span><h1>ArtefGo Frames</h1></div>
+  <p style="color:var(--mut);margin:0 0 8px;font-size:14px">Activa tu licencia para empezar.</p>
+  <label>Correo</label>
+  <input id="email" type="email" inputmode="email" autocapitalize="none" placeholder="tu@correo.com">
+  <label>Clave de activación</label>
+  <input id="key" autocapitalize="characters" placeholder="AGF-XXXXXXXXXXXX">
+  <div class="hw">ID de este equipo:<br><span id="hwid">…</span></div>
+  <div id="msg"></div>
+  <div class="row">
+    <button class="btn sec" id="btnDemo">Usar demo (72 h)</button>
+    <button class="btn" id="btnActivate">Activar</button>
+  </div>
+</div>
+
+<!-- ======= EDITOR ======= -->
+<div class="screen" id="editor">
+  <div class="topbar">
+    <img class="brandico" id="edIcon" width="18" height="18" alt="">
+    <span class="dot"></span>
+    <b>ArtefGo Frames</b>
+    <span class="sp"></span>
+    <button class="iconbtn" id="btnLic">Licencia</button>
+  </div>
+  <div class="stage"><canvas id="preview"></canvas></div>
+  <div class="toolbar">
+    <div class="sizes">
+      <button data-size="4x6" class="act">4x6</button>
+      <button data-size="6x8">6x8</button>
+    </div>
+    <button class="btn" id="btnPhoto">Tomar foto</button>
+    <button class="btn sec" id="btnFrame">Cargar marco</button>
+    <button class="btn" id="btnSave" style="grid-column:1 / -1">Guardar / Compartir</button>
+  </div>
+</div>
+
+<!-- Modal licencia -->
+<div class="modal" id="licModal"><div class="box">
+  <h2>Licencia</h2>
+  <div id="licBox" style="line-height:1.9;font-size:14px">Cargando…</div>
+  <div class="row">
+    <button class="btn sec" id="btnLicClose">Cerrar</button>
+    <button class="btn" id="btnDeact" style="background:#c0392b">Desactivar</button>
+  </div>
+</div></div>
+
+<input type="file" id="frameInput" accept="image/png,image/*" style="display:none">
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
+
+<script src="js/config.js"></script>
+<script src="js/licencia.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
