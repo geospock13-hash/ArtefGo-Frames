@@ -238,9 +238,9 @@
 
 <div class="modal" id="pcModal"><div class="box">
   <h2>Enviar a PC</h2>
-  <p style="color:var(--mut);margin:0 0 8px">Escribe la dirección que muestra el <b>ArtefGo Receptor</b> en la PC. El celular y la PC deben estar en la misma WiFi.</p>
-  <label>Dirección de la PC</label>
-  <input type="text" id="pcIp" inputmode="decimal" placeholder="192.168.1.50:8765">
+  <p style="color:var(--mut);margin:0 0 8px">Escribe solo la <b>IP</b> que muestra el <b>ArtefGo Receptor</b> (sin el <b>:8765</b>, se agrega solo). El celular y la PC deben estar en la misma WiFi.</p>
+  <label>IP de la PC</label>
+  <input type="text" id="pcIp" inputmode="decimal" placeholder="192.168.1.124">
   <div class="hint" id="pcMsg"></div>
   <div style="display:flex;gap:10px;margin-top:14px">
     <button class="btn sec" style="flex:1" onclick="closeModal('pcModal')">Cerrar</button>
