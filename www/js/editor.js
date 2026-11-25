@@ -249,8 +249,8 @@ function openGallery(){
 // ================= Lote de fotos =================
 $('batchInput').addEventListener('change', e=>{
   const files=[...e.target.files]; if(!files.length) return;
-  if(window.__NATIVE__){ e.target.value=''; alert('El lote llegará con el envío a la PC. Por ahora usa Guardar / Compartir una por una.'); return; }
-  if(!state.frame){ alert('Primero carga y personaliza un marco.'); return; }
+  if(!state.frame){ alert('Primero carga y personaliza un marco.'); e.target.value=''; return; }
+  if(window.__NATIVE__){ procesarLoteNativo(files); e.target.value=''; return; }
   let done=0;
   files.forEach((f,i)=>{
     loadImageFromFile(f, img=>{
@@ -465,12 +465,60 @@ async function shareText(text, filename){
 }
 
 var _origPrint = printPhoto, _origSave = saveProject;
+// Guarda un lienzo en  Documentos/ArtefGoFrames/<evento>/  (sin diálogo).
+async function saveLocal(canvas, filename){
+  var base64 = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
+  var rel = 'ArtefGoFrames/' + eventName() + '/' + filename;
+  try {
+    var w = await P.Filesystem.writeFile({ path: rel, data: base64, directory: 'DOCUMENTS', recursive: true });
+    return { ok: true, where: 'Documentos/' + rel, uri: w.uri };
+  } catch (e) {
+    try {
+      var w2 = await P.Filesystem.writeFile({ path: rel, data: base64, directory: 'EXTERNAL', recursive: true });
+      return { ok: true, where: 'Android/data/com.artefgo.frames/files/' + rel, uri: w2.uri };
+    } catch (e2) { return { ok: false, error: String(e2.message || e2) }; }
+  }
+}
+function folderOf(where){ return where.replace(/\/[^\/]*$/, '/'); }
+
 downloadPhoto = function(){
   if(!state.frame){ alert('Primero carga un marco.'); return; }
   var c=renderFinal(); var name='ArtefGo_'+eventName()+'_'+stamp()+'.jpg';
-  if(window.__NATIVE__){ shareCanvas(c, name); addToGallery(c.toDataURL('image/jpeg',0.95)); setStatus('Listo para guardar o compartir.'); }
-  else { var url=c.toDataURL('image/png'); var a=document.createElement('a'); a.href=url; a.download=name.replace('.jpg','.png'); a.click(); addToGallery(url); setStatus('Foto descargada.'); }
+  if(window.__NATIVE__){
+    setStatus('Guardando…');
+    saveLocal(c, name).then(function(r){
+      if(r.ok){ addToGallery(c.toDataURL('image/jpeg',0.95)); setStatus('Guardada en ' + folderOf(r.where)); }
+      else setStatus('No se pudo guardar: ' + r.error);
+    });
+  } else { var url=c.toDataURL('image/png'); var a=document.createElement('a'); a.href=url; a.download=name.replace('.jpg','.png'); a.click(); addToGallery(url); setStatus('Foto descargada.'); }
 };
+
+// Lote: varias fotos con el mismo marco, guardadas solas en la carpeta del evento.
+async function procesarLoteNativo(files){
+  var prevPhoto=state.photo, prevAdj=adjustedPhoto;
+  var ok=0, fail=0, where='';
+  setStatus('Procesando lote: 0/'+files.length);
+  for(var i=0;i<files.length;i++){
+    try{
+      var img = await new Promise(function(res,rej){ var r=new FileReader();
+        r.onload=function(){ var im=new Image(); im.onload=function(){res(im);}; im.onerror=rej; im.src=r.result; };
+        r.onerror=rej; r.readAsDataURL(files[i]); });
+      state.photo=img; rebuildAdjusted();
+      var c=renderFinal();
+      var r2=await saveLocal(c, 'ArtefGo_'+eventName()+'_'+(i+1)+'_'+stamp()+'.jpg');
+      if(r2.ok){ ok++; where=r2.where; } else fail++;
+      setStatus('Procesando lote: '+(i+1)+'/'+files.length);
+    }catch(e){ fail++; }
+  }
+  state.photo=prevPhoto; adjustedPhoto=prevAdj; render();
+  setStatus('Lote listo: '+ok+' guardadas'+(fail?(', '+fail+' con error'):'')+(where?(' en '+folderOf(where)):''));
+}
+
+// Compartir una foto por el menú del sistema (cuando sí lo quieran).
+function compartirFoto(){
+  if(!state.frame){ alert('Primero carga un marco.'); return; }
+  var c=renderFinal(); shareCanvas(c, 'ArtefGo_'+eventName()+'_'+stamp()+'.jpg');
+}
 printPhoto = function(){
   if(window.__NATIVE__){ setStatus('La impresión será por WiFi a la PC (próximamente). Usa Guardar / Compartir.'); return; }
   _origPrint();
@@ -500,8 +548,8 @@ window.addEventListener('touchend', function(){ if(drag) window.dispatchEvent(ne
 // ---- Ajustes de interfaz para Android ----
 if(window.__NATIVE__){
   document.querySelectorAll('[data-print]').forEach(function(b){ b.style.display='none'; });
-  var ob=document.getElementById('btnOut'); if(ob) ob.textContent='Guardar / Compartir';
-  var fm=document.getElementById('fmDownload'); if(fm) fm.textContent='Guardar / Compartir';
+  var ob=document.getElementById('btnOut'); if(ob) ob.textContent='Guardar foto';
+  var fm=document.getElementById('fmDownload'); if(fm) fm.textContent='Guardar foto';
   // Android no reconoce la extensión .afgf: permite elegir cualquier archivo
   var opf=document.getElementById('openProjectFile'); if(opf) opf.setAttribute('accept','*/*');
 }
