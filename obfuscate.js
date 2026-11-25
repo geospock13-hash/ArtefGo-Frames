@@ -35,7 +35,7 @@ const LIGHT = {
 const FILES = [
   ["config.js", STRONG],
   ["licencia.js", STRONG],
-  ["app.js", LIGHT],
+  ["editor.js", LIGHT],
 ];
 
 console.log("Ofuscando www/js ...");
