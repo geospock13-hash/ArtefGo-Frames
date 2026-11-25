@@ -502,6 +502,8 @@ if(window.__NATIVE__){
   document.querySelectorAll('[data-print]').forEach(function(b){ b.style.display='none'; });
   var ob=document.getElementById('btnOut'); if(ob) ob.textContent='Guardar / Compartir';
   var fm=document.getElementById('fmDownload'); if(fm) fm.textContent='Guardar / Compartir';
+  // Android no reconoce la extensión .afgf: permite elegir cualquier archivo
+  var opf=document.getElementById('openProjectFile'); if(opf) opf.setAttribute('accept','*/*');
 }
 var bc=document.getElementById('btnCamera'); if(bc) bc.addEventListener('click', tomarFoto);
 
