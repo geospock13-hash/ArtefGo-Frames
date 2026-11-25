@@ -40,7 +40,22 @@ jobs:
         with:
           packages: "platform-tools platforms;android-34 build-tools;34.0.0"
 
+      - name: Preparar keystore de firma
+        env:
+          KEYSTORE_B64: ${{ secrets.ARTEFGO_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            mkdir -p android/keystore
+            echo "$KEYSTORE_B64" | base64 -d > android/keystore/artefgo.keystore
+            echo "Keystore de firma lista (firma estable)."
+          else
+            echo "::warning::Sin secreto ARTEFGO_KEYSTORE_B64; se usa firma debug por defecto (cambiará en cada build)."
+          fi
+
       - name: Build debug APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          ARTEFGO_KEYSTORE: ${{ github.workspace }}/android/keystore/artefgo.keystore
         run: |
           cd android
           chmod +x gradlew

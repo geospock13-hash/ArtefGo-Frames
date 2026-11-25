@@ -65,6 +65,17 @@
   .grid .cell button{ flex:1; font-size:12px; padding:7px; border:none; border-radius:4px; background:var(--acc); color:#fff; }
   .file{ display:none; }
 
+  /* ---- Paleta de control (mover/ajustar en el teléfono) ---- */
+  #palette{ background:#1a1a1a; border:1px solid var(--line); border-radius:10px; padding:8px; margin-bottom:8px; }
+  #palette .ptargets{ display:flex; gap:6px; margin-bottom:8px; }
+  #palette .pt{ flex:1; background:#2a2a2a; border:1px solid var(--line); color:var(--txt); border-radius:6px; padding:9px 4px; font-size:13px; }
+  #palette .pt.act{ background:var(--acc); border-color:var(--acc); color:#fff; }
+  #palette .ppad{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:6px; }
+  #palette .psize{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  #palette .ppad button, #palette .psize button{ background:#2a2a2a; border:1px solid var(--line);
+      color:var(--txt); border-radius:6px; padding:12px 0; font-size:16px; }
+  #palette .ppad button:active, #palette .psize button:active{ background:var(--acc); }
+
   /* ---- Pantalla en teléfono: lienzo arriba, controles abajo ---- */
   @media (max-width: 820px){
     .app{ flex-direction:column; }
@@ -116,6 +127,29 @@
 <div class="app">
   <div class="stage"><canvas id="view" width="600" height="900"></canvas></div>
   <div class="panel">
+    <div id="palette">
+      <div class="ptargets">
+        <button class="pt act" data-t="zone">Zona foto</button>
+        <button class="pt" data-t="text">Texto</button>
+        <button class="pt" data-t="logo">Logo</button>
+      </div>
+      <div class="ppad">
+        <button data-m="up">▲</button>
+        <button data-m="left">◀</button>
+        <button data-m="right">▶</button>
+        <button data-m="down">▼</button>
+      </div>
+      <div class="psize">
+        <button data-s="big">＋</button>
+        <button data-s="small">－</button>
+        <button data-s="wider">↔＋</button>
+        <button data-s="narrower">↔－</button>
+        <button data-s="taller">↕＋</button>
+        <button data-s="shorter">↕－</button>
+      </div>
+      <div class="hint" id="palhint">Selecciona Zona/Texto/Logo y muévelo o ajústalo.</div>
+    </div>
+
     <h3>Evento</h3>
     <input type="text" id="event" placeholder="Nombre del evento">
     <button class="btn" onclick="frameInput.click()">Abrir marco…</button>

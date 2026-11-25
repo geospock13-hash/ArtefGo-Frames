@@ -535,3 +535,76 @@ var bc=document.getElementById('btnCamera'); if(bc) bc.addEventListener('click',
     showEditor(); render();
   }catch(e){ showActivation('Error al leer la licencia.'); }
 })();
+
+// ======================================================================
+// ============ Paleta de control + botón Atrás (Android) ===============
+// ======================================================================
+var selTarget = 'zone';
+function setPalTarget(t){
+  selTarget = t;
+  document.querySelectorAll('#palette .pt').forEach(function(b){ b.classList.toggle('act', b.getAttribute('data-t')===t); });
+  var h=document.getElementById('palhint');
+  if(h) h.textContent = t==='zone' ? 'Mueve y ajusta la zona donde va la foto.'
+       : t==='text' ? 'Mueve y agranda/achica el texto.'
+       : 'Mueve y agranda/achica el logo.';
+}
+function palMove(dx,dy){
+  var step=0.02;
+  if(selTarget==='zone'){
+    if(state.hasAlpha){ setStatus('El marco tiene zona automática (transparencia).'); return; }
+    var z=state.zone; z.x=clamp(z.x+dx*step); z.y=clamp(z.y+dy*step);
+    z.x=Math.max(0,Math.min(z.x,1-z.w)); z.y=Math.max(0,Math.min(z.y,1-z.h)); state.zone=z;
+  } else if(selTarget==='text'){
+    if(!state.text){ setStatus('Escribe un texto primero.'); return; }
+    state.textPos={x:clamp(state.textPos.x+dx*step), y:clamp(state.textPos.y+dy*step)};
+  } else if(selTarget==='logo'){
+    if(!state.logo){ setStatus('Agrega un logo primero.'); return; }
+    state.logoPos={x:clamp(state.logoPos.x+dx*step), y:clamp(state.logoPos.y+dy*step)};
+  }
+  render();
+}
+function palSize(kind){
+  if(selTarget==='zone'){
+    if(state.hasAlpha){ setStatus('El marco tiene zona automática (transparencia).'); return; }
+    var z=state.zone, s=0.03;
+    if(kind==='big'){ z.w=Math.min(1,z.w+s); z.h=Math.min(1,z.h+s); }
+    else if(kind==='small'){ z.w=Math.max(0.05,z.w-s); z.h=Math.max(0.05,z.h-s); }
+    else if(kind==='wider'){ z.w=Math.min(1,z.w+s); }
+    else if(kind==='narrower'){ z.w=Math.max(0.05,z.w-s); }
+    else if(kind==='taller'){ z.h=Math.min(1,z.h+s); }
+    else if(kind==='shorter'){ z.h=Math.max(0.05,z.h-s); }
+    z.x=Math.max(0,Math.min(z.x,1-z.w)); z.y=Math.max(0,Math.min(z.y,1-z.h)); state.zone=z;
+  } else if(selTarget==='text'){
+    if(!state.text){ setStatus('Escribe un texto primero.'); return; }
+    var up = (kind==='big'||kind==='wider'||kind==='taller');
+    state.tsize = up ? Math.min(20,state.tsize+1) : Math.max(2,state.tsize-1);
+    var ts=$('tsize'); if(ts) ts.value=state.tsize;
+  } else if(selTarget==='logo'){
+    if(!state.logo){ setStatus('Agrega un logo primero.'); return; }
+    var up2 = (kind==='big'||kind==='wider'||kind==='taller');
+    state.logoWidth = up2 ? Math.min(0.6,state.logoWidth+0.03) : Math.max(0.05,state.logoWidth-0.03);
+    var ls=$('lsize'); if(ls) ls.value=state.logoWidth*100;
+  }
+  render();
+}
+(function wirePalette(){
+  document.querySelectorAll('#palette .pt').forEach(function(b){ b.addEventListener('click', function(){ setPalTarget(b.getAttribute('data-t')); }); });
+  var MOVES={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+  document.querySelectorAll('#palette .ppad button').forEach(function(b){
+    b.addEventListener('click', function(){ var m=MOVES[b.getAttribute('data-m')]; palMove(m[0],m[1]); }); });
+  document.querySelectorAll('#palette .psize button').forEach(function(b){
+    b.addEventListener('click', function(){ palSize(b.getAttribute('data-s')); }); });
+})();
+
+// ---- Botón Atrás de Android: cierra modal/menú; si no hay nada, minimiza (no pierde el trabajo) ----
+if(P.App && P.App.addListener){
+  P.App.addListener('backButton', function(){
+    var m=document.querySelector('.modal.open');
+    if(m){ m.classList.remove('open'); return; }
+    var mn=document.querySelector('.menu.open');
+    if(mn){ mn.classList.remove('open'); return; }
+    var act=document.getElementById('activation');
+    if(act && act.classList.contains('on')){ if(P.App.minimizeApp) P.App.minimizeApp(); return; }
+    if(P.App.minimizeApp) P.App.minimizeApp();
+  });
+}
